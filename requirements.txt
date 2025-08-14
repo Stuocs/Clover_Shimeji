@@ -1,0 +1,19 @@
+# Clover Desktop Mascot Requirements
+
+# GUI Framework
+PyQt5>=5.15.0
+
+# Image processing
+Pillow>=8.0.0
+
+# For building executable
+PyInstaller>=4.0
+
+# Optional: For better performance
+psutil>=5.8.0
+
+# Web requests for meme fetching
+requests>=2.25.0
+
+# Windows API for window manipulation
+pywin32>=227; sys_platform == "win32"

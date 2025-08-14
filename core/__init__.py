@@ -1,0 +1,1 @@
+# Core module for Clover Desktop Mascot
