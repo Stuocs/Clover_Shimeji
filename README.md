@@ -109,7 +109,7 @@ Clover is your personal desktop companion that lives on your screen and interact
 
 ### Getting Started
 
-1. **Launch the Application**: Run the executable or Python script
+1. **Launch the Application**: Run the executable or Python script (If you want to run the python script, you may want to read "SPRITES.md"
 
 2. **First Appearance**: Clover appears on your screen in a default position (Top left)
 
