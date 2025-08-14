@@ -4,7 +4,7 @@
 
 This document provides a comprehensive guide for recreating the sprite assets required for the Clover Desktop Mascot application. Due to copyright restrictions, the original sprite files from Undertale Yellow cannot be distributed with this repository. Users must obtain and organize their own sprite assets following the structure outlined below.
 
-## ⚠️ Important Legal Notice
+## Important Legal Notice
 
 **All sprite assets are the intellectual property of Team Undertale Yellow (@TeamUTY)**. This application is a fan-made project that requires users to:
 
@@ -12,8 +12,11 @@ This document provides a comprehensive guide for recreating the sprite assets re
 2. **Extract and organize** them according to this documentation
 3. **Respect copyright** - do not redistribute the sprite files
 4. **Credit the creators** - Team Undertale Yellow for all character designs and artwork
+5. **Follow the directory structure** - Maintain the exact folder names and file counts as specified
+6. **Add any additional categories** - If you have additional sprite categories not included in the basic set, add them to the `Sprites/` directory.
+7. **Download the release** - If you want to not compile the project, download the release from the releases page.
 
-## 📁 Required Directory Structure
+## Required Directory Structure
 
 The `Sprites/` directory must contain the following structure with **exactly** these folder names:
 
@@ -35,20 +38,7 @@ Sprites/
 
 **Total: 532 sprite files across 12 directories**
 
-### ⚠️ Note on Missing Directories
-
-The application code references additional sprite categories that may be part of a complete sprite set:
-- `climb/` - Climbing animations
-- `ending/` - Ending sequence sprites  
-- `geno/` - Additional genocide route sprites
-- `goggles/` - Goggles-related sprites
-- `nod/` - Nodding animations
-- `poses/` - Additional pose sprites
-- `who gave trash to the kid/` - Special interaction sprites
-
-These directories are **optional** and the application will function without them, but including them may provide additional animation variety if available in your sprite extraction.
-
-## 🎭 Detailed Sprite Categories
+## Detailed Sprite Categories
 
 *The following 12 categories are **required** for basic functionality:*
 
@@ -152,7 +142,7 @@ Basket-related animations and interactions.
 **Required files:**
 - `spr_mail_whale_basket_with_clover_yellow_0.png` through `spr_mail_whale_basket_with_clover_yellow_5.png` - Mail whale basket sequence (6 frames)
 
-## 🔧 Technical Requirements
+## Technical Requirements
 
 ### File Format
 - **Format:** PNG with transparency
@@ -172,7 +162,7 @@ Basket-related animations and interactions.
 - **Transparency:** Preserve alpha channel for proper desktop integration
 - **Consistency:** Maintain consistent sprite dimensions within animation sequences
 
-## 📋 Extraction Guide
+## Extraction Guide
 
 ### From Undertale Yellow Game Files
 
@@ -191,7 +181,7 @@ Basket-related animations and interactions.
 - [ ] No missing frames in animation sequences
 - [ ] Sprites maintain original quality and dimensions
 
-## 🚀 Integration
+## Integration
 
 Once sprites are properly organized:
 
@@ -200,7 +190,7 @@ Once sprites are properly organized:
 3. The animation loader will automatically detect and load all sprites
 4. Verify animations work correctly through the right-click menu
 
-## 🔍 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -219,7 +209,7 @@ Once sprites are properly organized:
 - Ensure sprites aren't excessively large
 - Check for corrupted image files
 
-## 🛠️ Quick Setup Verification
+## Quick Setup Verification
 
 After organizing your sprites, run this quick verification:
 
@@ -238,7 +228,7 @@ python main.py
 - Dance mode activates properly
 - Sleep mode functions correctly
 
-## 📞 Support
+## Support
 
 For technical issues with sprite integration:
 1. Verify your sprite organization matches this documentation
@@ -247,7 +237,7 @@ For technical issues with sprite integration:
 4. Verify all 532 files are present and properly named
 5. Test with a minimal sprite set first (walking, sitting, dancing)
 
-## 🙏 Credits
+## Credits
 
 **All sprite assets and character designs:** Team Undertale Yellow (@TeamUTY)
 
