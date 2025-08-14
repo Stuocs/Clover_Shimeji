@@ -639,7 +639,7 @@ We welcome contributions! Here's how you can help:
 
 3. **Submit Code**: Fork the repository and submit pull requests
 
-4. **Create Sprites**: Design new animations following the existing style (I will gladly add more animations if you share with me the sprites, DM me in reddit please ^^ )
+4. **Create Sprites**: Design new animations following the existing style (I will gladly add more animations if you share with me the sprites, DM me in [reddit](https://www.reddit.com/user/Kair-Os/) please ^^ )
 
 5. **Improve Documentation**: Help make the README even better
 
