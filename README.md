@@ -749,7 +749,11 @@ This desktop pet is a fan-made tribute project and is not officially affiliated 
 
 [![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/alfredoespp)
 
+# IMPORTANT
 
+> This project requires the original **Undertale Yellow** sprites.
+> You can extract them from your legitimate copy of the game using the [Undertale Mod Tool](https://github.com/UnderminersTeam/UndertaleModTool).
+> Place the extracted files in the `Sprites/` folder before running the program.
 
 
 
