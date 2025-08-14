@@ -1,4 +1,4 @@
-# 🍀🔫🤠 Clover Shimeji - Desktop Pet
+# 🦊🔫🤠 Clover Shimeji - Desktop Pet
 
   
 
