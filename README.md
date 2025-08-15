@@ -37,10 +37,6 @@ Clover is your personal desktop companion that lives on your screen and interact
 
 - **Wind Effects**: Clover reacting to wind with flowing movements
 
-
-> [!warning] Recommendation
-> I highly recommend disabling car ride and whale ride if you don't want to be disturbed.
-> Also, disable sitting to avoid overlapping.
   
 ### **Interactive Behaviors**
 
