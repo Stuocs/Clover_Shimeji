@@ -751,6 +751,7 @@ This desktop pet is a fan-made tribute project and is not officially affiliated 
 > You can extract them from your legitimate copy of the game using the [Undertale Mod Tool](https://github.com/UnderminersTeam/UndertaleModTool).
 > Place the extracted files in the `Sprites/` folder before running the program.
 > If you want to avoid this, download the binary from releases.
+> All the donations will be used to support this project and future ones (If someone wanna help).
 
 
 
