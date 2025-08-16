@@ -1118,13 +1118,13 @@ class DesktopMascot(QWidget):
             self.meme_image_label.move(meme_x, meme_y)
         
         # Check for windows in path and push them
-        self.push_windows_in_cart_path()
+        #self.push_windows_in_cart_path()
         
         # Check if cart has moved off screen
         if self.meme_cart_current_x >= self.meme_cart_target_x:
             # Stop movement and restore moved windows
             self.meme_cart_movement_timer.stop()
-            self.restore_moved_windows()
+            #self.restore_moved_windows()
             self.is_character_interaction = False
             
             # Reset meme release flag for next time
