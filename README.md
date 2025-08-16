@@ -743,6 +743,7 @@ This desktop pet is a fan-made tribute project and is not officially affiliated 
 **Please support the official Undertale Yellow game and Team Undertale Yellow's work!**
 
 
+[Youtube Explanatory Video](https://www.youtube.com/watch?v=Ytby3_SE7-I)
 [![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/alfredoespp)
 
 # IMPORTANT
