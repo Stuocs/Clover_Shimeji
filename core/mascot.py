@@ -16,9 +16,9 @@ try:
     WIN32_AVAILABLE = True
 except ImportError:
     WIN32_AVAILABLE = False
-from PyQt5.QtWidgets import QWidget, QLabel, QMenu, QAction, QApplication
+from PyQt5.QtWidgets import QWidget, QLabel, QMenu, QAction, QApplication, QSystemTrayIcon
 from PyQt5.QtCore import Qt, QTimer, QPoint, pyqtSignal, QThread, pyqtSignal as Signal
-from PyQt5.QtGui import QPixmap, QPainter, QCursor
+from PyQt5.QtGui import QPixmap, QPainter, QCursor, QIcon
 from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from .animation_loader import AnimationLoader
 from .event_handler import EventHandler
@@ -68,6 +68,7 @@ class DesktopMascot(QWidget):
         self.mouse_follow_timer.timeout.connect(self.follow_mouse)
         
         self.init_ui()
+        self.init_system_tray()
         self.load_initial_animation()
         
     def init_ui(self):
@@ -93,6 +94,78 @@ class DesktopMascot(QWidget):
         
         # Enable mouse tracking
         self.setMouseTracking(True)
+    
+    def init_system_tray(self):
+        """Initialize the system tray icon."""
+        if not QSystemTrayIcon.isSystemTrayAvailable():
+            print("System tray is not available on this system.")
+            return
+        
+        # Create system tray icon
+        self.tray_icon = QSystemTrayIcon(self)
+        
+        # Set icon (try premium icons first, fallback to default if needed)
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'clover_premium.ico')
+        if os.path.exists(icon_path):
+            self.tray_icon.setIcon(QIcon(icon_path))
+        else:
+            # Fallback to application icon if available
+            self.tray_icon.setIcon(self.style().standardIcon(self.style().SP_ComputerIcon))
+        
+        # Set tooltip
+        self.tray_icon.setToolTip("Clover Desktop Mascot")
+        
+        # Create tray menu
+        tray_menu = QMenu()
+        
+        # Show/Hide mascot action
+        show_hide_action = QAction("Show/Hide Mascot", self)
+        show_hide_action.triggered.connect(self.toggle_mascot_visibility)
+        tray_menu.addAction(show_hide_action)
+        
+        tray_menu.addSeparator()
+        
+        # Exit action
+        exit_action = QAction("Exit", self)
+        exit_action.triggered.connect(self.close_application)
+        tray_menu.addAction(exit_action)
+        
+        # Set the menu
+        self.tray_icon.setContextMenu(tray_menu)
+        
+        # Connect double-click to show/hide
+        self.tray_icon.activated.connect(self.on_tray_icon_activated)
+        
+        # Show the tray icon
+        self.tray_icon.show()
+        
+        print("System tray icon initialized successfully.")
+    
+    def on_tray_icon_activated(self, reason):
+        """Handle tray icon activation (clicks)."""
+        if reason == QSystemTrayIcon.DoubleClick:
+            self.toggle_mascot_visibility()
+    
+    def toggle_mascot_visibility(self):
+        """Toggle the visibility of the mascot window."""
+        if self.isVisible():
+            self.hide()
+            if hasattr(self, 'tray_icon'):
+                self.tray_icon.showMessage(
+                    "Clover Desktop Mascot",
+                    "Mascot hidden. Double-click the tray icon or right-click and select 'Show/Hide Mascot' to show again.",
+                    QSystemTrayIcon.Information,
+                    3000
+                )
+        else:
+            self.show()
+            if hasattr(self, 'tray_icon'):
+                self.tray_icon.showMessage(
+                    "Clover Desktop Mascot",
+                    "Mascot is now visible on your desktop.",
+                    QSystemTrayIcon.Information,
+                    2000
+                )
         
     def load_initial_animation(self):
         """Load the initial idle animation."""
@@ -128,6 +201,14 @@ class DesktopMascot(QWidget):
         
         # Idle timer functionality removed with idle mode
     
+    def stop_animation(self):
+        """Stop the current animation."""
+        if self.animation_timer.isActive():
+            self.animation_timer.stop()
+        self.current_animation = None
+        self.current_animation_name = None
+        self.current_frame = 0
+    
     def next_frame(self):
         """Advance to the next animation frame."""
         if not self.current_animation or not self.current_animation['frames']:
@@ -159,10 +240,12 @@ class DesktopMascot(QWidget):
                 scaled_size = pixmap.size() * current_scale
                 pixmap = pixmap.scaled(scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             
-            # If sleeping and ZZZ frames are available, composite them
-            if (self.is_sleeping and hasattr(self, 'zzz_frames') and 
-                self.zzz_frames and hasattr(self, 'zzz_current_frame')):
-                pixmap = self.composite_zzz_overlay(pixmap, current_scale)
+            # If sleeping and using precomposed ZZZ frames, use them instead
+            if (self.is_sleeping and hasattr(self, 'zzz_composite_frames') and 
+                self.zzz_composite_frames and hasattr(self, 'zzz_current_frame') and
+                len(self.zzz_composite_frames) > 0):
+                # Use precomposed frame to avoid recompositing
+                pixmap = self.zzz_composite_frames[self.zzz_current_frame]
             
             self.sprite_label.setPixmap(pixmap)
             
@@ -227,8 +310,8 @@ class DesktopMascot(QWidget):
         
         # Stop if close enough and start dancing
         if distance < 50:
-            # Start dancing for 1 minute (60000 ms) regardless of current animation
-            self.logic.start_timed_dance(60000)
+            # Start dancing for 10 seconds (10000 ms) regardless of current animation
+            self.logic.start_timed_dance(10000)
             # Disable mouse following while dancing
             self.is_following_mouse = False
             self.mouse_follow_timer.stop()
@@ -332,14 +415,8 @@ class DesktopMascot(QWidget):
             # Load and display only the specific sleep sprite
             self.start_sleep_animation()
         else:
-            # Stop ZZZ animation when exiting sleep mode
-            self.stop_zzz_animation()
-            # Restart random walking if no other special modes are active
-            if (self.logic.random_walking_enabled and not self.logic.eternal_dance_mode and 
-                not self.logic.timed_dance_mode and not self.is_following_mouse and 
-                not getattr(self, 'is_falling', False)):
-                self.logic.start_random_walking_system()
-            self.logic.return_to_idle()
+            # Automatically trigger Return to AFK when sleep mode is deactivated
+            self.return_to_afk_mode()
     
     def set_fall_mode(self, fall, auto_stop=False):
         """Enable or disable fall mode."""
@@ -505,12 +582,13 @@ class DesktopMascot(QWidget):
         return composite
     
     def load_zzz_sprites(self):
-        """Load ZZZ animation sprites."""
+        """Load ZZZ animation sprites and precomposite them with the sleep scene."""
         from utils.path_helper import get_sprites_path
         import os
         from PyQt5.QtGui import QPixmap
         
         self.zzz_frames = []
+        self.zzz_composite_frames = []  # Precomposed frames to avoid visual loading
         sprites_path = get_sprites_path()
         lying_path = os.path.join(sprites_path, 'lying')
         
@@ -529,27 +607,99 @@ class DesktopMascot(QWidget):
         
         if not self.zzz_frames:
             print("Warning: No ZZZ sprites found for sleep animation")
+        else:
+            # Precomposite all ZZZ frames with the current sleep scene to avoid visual loading
+            self.precomposite_zzz_frames()
+    
+    def precomposite_zzz_frames(self):
+        """Precomposite all ZZZ frames with the sleep scene to avoid visual loading during animation."""
+        if not hasattr(self, 'current_animation') or not self.current_animation or not self.current_animation['frames']:
+            return
+            
+        # Get the base sleep sprite
+        base_pixmap = self.current_animation['frames'][0]
+        current_scale = config.get_setting('size', 'current_scale', 1.0)
+        
+        # Apply scaling to base sprite
+        if current_scale != 1.0:
+            scaled_size = base_pixmap.size() * current_scale
+            base_pixmap = base_pixmap.scaled(scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        
+        # Clear previous composite frames
+        self.zzz_composite_frames = []
+        
+        # Create composite frames for each ZZZ sprite
+        for i, zzz_pixmap in enumerate(self.zzz_frames):
+            composite_frame = self.create_zzz_composite(base_pixmap, zzz_pixmap, i, current_scale)
+            self.zzz_composite_frames.append(composite_frame)
+    
+    def create_zzz_composite(self, base_pixmap, zzz_pixmap, frame_index, scale):
+        """Create a single composite frame with ZZZ overlay."""
+        from PyQt5.QtGui import QPainter
+        
+        # Scale ZZZ sprite if needed
+        if scale != 1.0:
+            zzz_scaled_size = zzz_pixmap.size() * scale
+            zzz_pixmap = zzz_pixmap.scaled(zzz_scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        
+        # Calculate progressive height offset for each ZZZ frame (0, 1, 2)
+        height_offset = frame_index * int(10 * scale)  # Progressive height increase
+        
+        # Create a larger canvas to accommodate ZZZ sprites above the mascot
+        zzz_space = int(60 * scale)  # Extra space above for ZZZ animation
+        canvas_width = max(base_pixmap.width(), zzz_pixmap.width())
+        canvas_height = base_pixmap.height() + zzz_space
+        
+        result_pixmap = QPixmap(canvas_width, canvas_height)
+        result_pixmap.fill(Qt.transparent)
+        
+        # Draw the base sprite at the bottom of the canvas
+        painter = QPainter(result_pixmap)
+        base_x = (canvas_width - base_pixmap.width()) // 2
+        base_y = zzz_space  # Position base sprite below ZZZ space
+        painter.drawPixmap(base_x, base_y, base_pixmap)
+        
+        # Position ZZZ above Clover's head with progressive height
+        zzz_x = (canvas_width - zzz_pixmap.width()) // 2
+        zzz_y = zzz_space - zzz_pixmap.height() - int(5 * scale) - height_offset
+        
+        # Draw the ZZZ overlay
+        painter.drawPixmap(zzz_x, zzz_y, zzz_pixmap)
+        painter.end()
+        
+        return result_pixmap
     
     def start_zzz_animation(self):
-        """Start the ZZZ overlay animation."""
-        if hasattr(self, 'zzz_frames') and self.zzz_frames:
+        """Start the ZZZ overlay animation using precomposed frames."""
+        if hasattr(self, 'zzz_composite_frames') and self.zzz_composite_frames:
             self.zzz_timer = QTimer()
             self.zzz_timer.timeout.connect(self.next_zzz_frame)
-            self.zzz_timer.start(500)  # 500ms between ZZZ frames
+            self.zzz_timer.start(800)  # Slower animation to make it less jarring
     
     def next_zzz_frame(self):
-        """Advance to the next ZZZ frame."""
-        if hasattr(self, 'zzz_frames') and self.zzz_frames:
-            self.zzz_current_frame = (self.zzz_current_frame + 1) % len(self.zzz_frames)
-            self.update_sprite()  # Trigger sprite update to show new ZZZ frame
+        """Advance to the next ZZZ frame using precomposed frames."""
+        if hasattr(self, 'zzz_composite_frames') and self.zzz_composite_frames:
+            self.zzz_current_frame = (self.zzz_current_frame + 1) % len(self.zzz_composite_frames)
+            # Directly set the precomposed frame to avoid recompositing
+            self.sprite_label.setPixmap(self.zzz_composite_frames[self.zzz_current_frame])
+            # Update widget size to match the composite frame
+            frame_size = self.zzz_composite_frames[self.zzz_current_frame].size()
+            self.resize(frame_size)
+            self.sprite_label.resize(frame_size)
+            self.sprite_label.move(0, 0)
     
     def stop_zzz_animation(self):
-        """Stop the ZZZ overlay animation."""
+        """Stop the ZZZ overlay animation and clean up properly."""
         if hasattr(self, 'zzz_timer'):
             self.zzz_timer.stop()
-            lying_animations = self.animation_loader.get_animations_by_category('lying')
-            if lying_animations:
-                self.start_animation(lying_animations[0])
+            # Clear ZZZ-related attributes to prevent separate sprite loading
+            if hasattr(self, 'zzz_composite_frames'):
+                self.zzz_composite_frames = []
+            if hasattr(self, 'zzz_frames'):
+                self.zzz_frames = []
+            self.zzz_current_frame = 0
+            # Simply update the sprite without reloading animation to avoid separate loading
+            self.update_sprite()
     
     def force_dance(self):
         """Toggle eternal dance mode."""
@@ -2094,8 +2244,55 @@ class DesktopMascot(QWidget):
         if hasattr(self, 'showdown_strong_bullets'):
             self.showdown_strong_bullets.clear()
         
-        # End the showdown sequence
-        self.end_showdown_sequence()
+        # Start unsummon animation before ending
+        self.showdown_phase = 'defeat_unsummon'
+        print("Showdown: Attempting to start defeat unsummon animation...")
+        
+        # Try to find and start unsummon animation
+        all_animations = self.animation_loader.get_all_animations()
+        unsummon_animations = [name for name in all_animations if 'unsummon' in name.lower()]
+        print(f"Showdown: Available unsummon animations: {unsummon_animations}")
+        
+        # Try different possible names for the unsummon animation
+        possible_names = ['spr_clover_geno_unsummon', 'gun_spr_clover_geno_unsummon', 'geno_spr_clover_geno_unsummon']
+        unsummon_started = False
+        
+        for anim_name in possible_names:
+            if self.animation_loader.animation_exists(anim_name):
+                print(f"Showdown: Found unsummon animation: {anim_name}")
+                self.start_animation(anim_name, loop=False)
+                unsummon_started = True
+                break
+        
+        if unsummon_started:
+            # Set timer to end showdown after unsummon animation completes
+            # Use the animation name that was actually found
+            found_anim_name = None
+            for anim_name in possible_names:
+                if self.animation_loader.animation_exists(anim_name):
+                    found_anim_name = anim_name
+                    break
+            
+            if found_anim_name:
+                unsummon_info = self.animation_loader.get_animation_info(found_anim_name)
+                if unsummon_info:
+                    unsummon_duration = unsummon_info['frame_count'] * unsummon_info['frame_rate']
+                    print(f"Showdown: Defeat unsummon duration calculated: {unsummon_duration}ms")
+                else:
+                    unsummon_duration = 2000  # Fallback duration if animation not found
+            else:
+                unsummon_duration = 2000  # Fallback duration if animation not found
+        else:
+            print("Showdown: Defeat unsummon animation not found, ending immediately")
+            unsummon_duration = 100  # Very short delay before ending
+        
+        # Create timer to end showdown after unsummon completes
+        if not hasattr(self, 'defeat_transition_timer'):
+            self.defeat_transition_timer = QTimer()
+            self.defeat_transition_timer.setSingleShot(True)
+            self.defeat_transition_timer.timeout.connect(self.end_showdown_sequence)
+        
+        self.defeat_transition_timer.start(unsummon_duration)
     
     def start_showdown_victory_sequence(self):
         """Start the victory sequence with unsummon animation followed by dancing."""
@@ -2130,7 +2327,7 @@ class DesktopMascot(QWidget):
         print(f"Showdown: Available unsummon animations: {unsummon_animations}")
         
         # Try different possible animation names
-        possible_names = ['spr_clover_geno_unsummon', 'geno_spr_clover_geno_unsummon']
+        possible_names = ['spr_clover_geno_unsummon', 'gun_spr_clover_geno_unsummon', 'geno_spr_clover_geno_unsummon']
         animation_found = False
         
         for anim_name in possible_names:
@@ -2141,12 +2338,21 @@ class DesktopMascot(QWidget):
                 break
         
         if animation_found:
-            
             # Set timer to transition to dancing after unsummon animation completes
-            unsummon_info = self.animation_loader.get_animation_info('spr_clover_geno_unsummon')
-            if unsummon_info:
-                unsummon_duration = unsummon_info['frame_count'] * unsummon_info['frame_rate']
-                print(f"Showdown: Unsummon duration calculated: {unsummon_duration}ms")
+            # Use the animation name that was actually found
+            found_anim_name = None
+            for anim_name in possible_names:
+                if self.animation_loader.animation_exists(anim_name):
+                    found_anim_name = anim_name
+                    break
+            
+            if found_anim_name:
+                unsummon_info = self.animation_loader.get_animation_info(found_anim_name)
+                if unsummon_info:
+                    unsummon_duration = unsummon_info['frame_count'] * unsummon_info['frame_rate']
+                    print(f"Showdown: Unsummon duration calculated: {unsummon_duration}ms")
+                else:
+                    unsummon_duration = 2000  # Fallback duration if animation not found
             else:
                 unsummon_duration = 2000  # Fallback duration if animation not found
                 print("Showdown: Using fallback duration: 2000ms")
@@ -2789,6 +2995,9 @@ class DesktopMascot(QWidget):
     
     def force_close(self):
         """Force close the application."""
+        # Clean up system tray icon
+        if hasattr(self, 'tray_icon'):
+            self.tray_icon.hide()
         self.close()
         QApplication.quit()
     
@@ -2797,14 +3006,28 @@ class DesktopMascot(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         # The sprite is handled by the QLabel, so we don't need to paint anything here
-        #This line only comes here because I want to have 2800 lines of code
+        #This line only comes here because I want to have 3033 lines of code
         #So I can have a better chance of getting a job at Google
         #I know, I know, it's not the best way to do it, but it's the only way I know how to do it
         #Im not getting job at google anyways so who cares
         #Actually Im wasting here my time while the project is compiling
-        #Its too slow
+        #Its too slow to compile
         #Next time I will do it in C++
         #Not really
         #There won't be probably a next time
         #Oh, it finished
         #Bye :D
+        #Oh it didn't work
+        #I guess Im here again
+        #How is your day by the way? Hope that you are good
+        #Can it be a little faster pls? It's compiling so slow
+        #I know, its my fault cuz Im using python but... Y'know, Im bored
+        #Thanks for your time
+        #Bye :D
+        #I ned 7 lines more...
+        #So let me tell you that I love Undertale Yellow
+        #Not a surprise I guess
+        #But I had to fill this with something
+        #...
+        #You really read all the code?
+        #Nah you just scrolled here, so bye

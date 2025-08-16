@@ -134,7 +134,9 @@ class AnimationLoader:
             filename = os.path.basename(image_file)
             
             # Determine animation type based on filename
-            if 'clover_geno_summon' in filename:
+            if 'clover_geno_unsummon' in filename:
+                anim_type = 'spr_clover_geno_unsummon'
+            elif 'clover_geno_summon' in filename:
                 anim_type = 'spr_clover_geno_summon'
             elif 'heart_yellow_shot' in filename:
                 anim_type = 'spr_heart_yellow_shot'

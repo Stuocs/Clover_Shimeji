@@ -247,29 +247,29 @@ class MascotLogic(QObject):
         afk_behaviors = {}
         
         if config.get_setting('afk_behavior', 'enable_walking', True):
-            afk_behaviors['walk'] = 35  # Walking/running (most common)
+            afk_behaviors['walk'] = 15  # Walking/running
         if config.get_setting('afk_behavior', 'enable_sitting', True):
-            afk_behaviors['sit'] = 20   # Sitting animations
+            afk_behaviors['sit'] = 15   # Sitting animations
         if config.get_setting('afk_behavior', 'enable_dancing', True):
-            afk_behaviors['dance'] = 10 # Dance animations
+            afk_behaviors['dance'] = 12 # Dance animations
         if config.get_setting('afk_behavior', 'enable_character_interactions', True):
-            afk_behaviors['character'] = 8 # Character interactions
+            afk_behaviors['character'] = 10 # Character interactions
         if config.get_setting('afk_behavior', 'enable_sleeping', True):
-            afk_behaviors['sleep'] = 5  # Sleep mode
+            afk_behaviors['sleep'] = 8  # Sleep mode
         if config.get_setting('afk_behavior', 'enable_falling', True):
-            afk_behaviors['fall'] = 3   # Fall mode
+            afk_behaviors['fall'] = 6   # Fall mode
         if config.get_setting('afk_behavior', 'enable_cart_rides', True):
-            afk_behaviors['cart'] = 6   # Cart rides
+            afk_behaviors['cart'] = 8   # Cart rides
         if config.get_setting('afk_behavior', 'enable_mouse_following', True):
-            afk_behaviors['follow_mouse'] = 5 # Follow mouse briefly
+            afk_behaviors['follow_mouse'] = 8 # Follow mouse briefly
         if config.get_setting('afk_behavior', 'enable_minigames', True):
-            afk_behaviors['minigame'] = 5  # Minigames if available
+            afk_behaviors['minigame'] = 10  # Minigames if available
         if config.get_setting('afk_behavior', 'enable_whale_mail', True):
-            afk_behaviors['whale_mail'] = 3  # Whale mail delivery
+            afk_behaviors['whale_mail'] = 8  # Whale mail delivery
         
         # If no behaviors are enabled, fallback to walking
         if not afk_behaviors:
-            afk_behaviors['walk'] = 35
+            afk_behaviors['walk'] = 15
         
         # Create weighted list for random selection
         weighted_choices = []
@@ -490,20 +490,16 @@ class MascotLogic(QObject):
             self.stop_walking_movement()
     
     def stop_walking_movement(self):
-        """Stop the walking movement and return to sitting."""
+        """Stop the walking movement."""
         if hasattr(self, 'walking_movement_timer'):
             self.walking_movement_timer.stop()
         
+        # Return to idle state instead of completely stopping animation
+        self.mascot.load_initial_animation()
+        
         # Don't reset walking session timer when movement stops - let it persist for running mode
         
-        # Return to sitting animation if no special modes are active
-        if (not self.mascot.is_sleeping and not self.mascot.is_following_mouse and 
-            not self.mascot.is_character_interaction and not self.eternal_dance_mode and 
-            not self.timed_dance_mode and not getattr(self.mascot, 'is_falling', False)):
-            sitting_animations = self.mascot.animation_loader.get_animations_by_category('sitting')
-            if sitting_animations:
-                import random
-                self.mascot.start_animation(random.choice(sitting_animations), loop=True)
+        # Removed automatic sitting animation - let AFK behavior system handle sitting based on user settings
     
     def start_random_walking_system(self):
         """Start the random walking system."""
@@ -640,11 +636,7 @@ class MascotLogic(QObject):
         self.mascot.is_following_mouse = False
         self.mascot.is_sleeping = False
         
-        # Start idle sitting animation
-        sitting_animations = self.mascot.animation_loader.get_animations_by_category('sitting')
-        if sitting_animations:
-            self.mascot.start_animation(random.choice(sitting_animations))
-        
+        # Removed automatic sitting animation - let AFK behavior system handle sitting based on user settings
         # Idle timer functionality removed with idle mode
     
     def on_animation_complete(self):
@@ -848,6 +840,9 @@ class MascotLogic(QObject):
             self.start_random_walking_system()
         self.on_user_interaction()  # Reset interaction timer
         self.return_to_idle()
+        # Schedule next AFK behavior after timed dance completes
+        import random
+        self.random_walking_timer.start(random.randint(2000, 5000))
 
     # Idle mode functionality removed
     
