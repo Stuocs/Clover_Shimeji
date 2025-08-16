@@ -223,7 +223,6 @@ class AFKBehaviorSettingsDialog(QDialog):
             )
             return
         
-        print("LLEGA")
          # Save settings
         settings = {
             'enable_walking': self.walking_cb.isChecked(),

@@ -3026,8 +3026,27 @@ class DesktopMascot(QWidget):
         """Custom paint event to ensure transparency."""
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
+
+    def load_afk_behavior_settings(self):
+        """Read JSON file with AFK behavior settings assigned previously"""
+        try:
+            # Read afk_behavior_settings.json
+            with open('afk_behavior_settings.json', 'r') as json_file:
+                settings = json.load(json_file)
+        
+            # Update AFK BEHAVIOR Config.py
+            for key, value in settings.items():
+                config.update_setting('afk_behavior', key, value)
+        
+            print("AFK behavior settings loaded successfully.")
+        except FileNotFoundError:
+            print("AFK behavior settings file not found. Using default settings.")
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON file: {e}")
+        except Exception as e:
+            print(f"An error occurred while loading settings: {e}")
         # The sprite is handled by the QLabel, so we don't need to paint anything here
-        #This line only comes here because I want to have 3033 lines of code
+        #This line only comes here because I want to have 3047 lines of code
         #So I can have a better chance of getting a job at Google
         #I know, I know, it's not the best way to do it, but it's the only way I know how to do it
         #Im not getting job at google anyways so who cares
@@ -3052,22 +3071,3 @@ class DesktopMascot(QWidget):
         #...
         #You really read all the code?
         #Nah you just scrolled here, so bye
-
-    def load_afk_behavior_settings(self):
-        """Read JSON file with AFK behavior settings assigned previously"""
-        try:
-            # Read afk_behavior_settings.json
-            with open('afk_behavior_settings.json', 'r') as json_file:
-                settings = json.load(json_file)
-        
-            # Update AFK BEHAVIOR Config.py
-            for key, value in settings.items():
-                config.update_setting('afk_behavior', key, value)
-        
-            print("AFK behavior settings loaded successfully.")
-        except FileNotFoundError:
-            print("AFK behavior settings file not found. Using default settings.")
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON file: {e}")
-        except Exception as e:
-            print(f"An error occurred while loading settings: {e}")
