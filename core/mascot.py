@@ -70,6 +70,7 @@ class DesktopMascot(QWidget):
         self.init_ui()
         self.init_system_tray()
         self.load_initial_animation()
+        self.load_afk_behavior_settings()
         
     def init_ui(self):
         """Initialize the UI with transparent background and frameless window."""
@@ -919,12 +920,14 @@ class DesktopMascot(QWidget):
     def disable_afk_mode_temporarily(self):
         """Temporarily disable AFK mode when an action starts."""
         config.update_setting('afk_behavior', 'afk_mode_enabled', False)
+        config.update_setting('flags', 'had_afk_mode_enabled', True)
         self.logic.random_walking_timer.stop()
         print("AFK mode temporarily disabled")
     
     def re_enable_afk_mode(self):
         """Re-enable AFK mode when an action ends."""
         config.update_setting('afk_behavior', 'afk_mode_enabled', True)
+        config.update_setting('flags', 'had_afk_mode_enabled', False)
         print("AFK mode re-enabled")
         # Restart AFK behaviors
         self.return_to_afk_mode()
@@ -1223,29 +1226,33 @@ class DesktopMascot(QWidget):
             self.logic.random_walking_timer.start(random.randint(3000, 8000))
     
     def start_hide_and_seek_sequence(self):
-        """Start the Hide and Seek minigame sequence."""
-        # Register as user interaction to prevent interruptions
-        self.logic.on_user_interaction()
+        # Check if is not already in a game
+        if config.get_setting('flags', 'mascot_in_game', True) is False:
+            
+            """Start the Hide and Seek minigame sequence."""
+            # Register as user interaction to prevent interruptions
+            self.logic.on_user_interaction()
         
-        # Temporarily disable AFK mode during minigame
-        self.disable_afk_mode_temporarily()
+            # Temporarily disable AFK mode during minigame
+            if config.get_setting('afk_behavior', 'afk_mode_enabled', True) is True:
+                self.disable_afk_mode_temporarily()
         
-        # Automatically reset character size to normal to prevent movement bugs
-        self.change_size(1.0)
-        print("Hide&Seek: Character size reset to normal to prevent movement bugs")
+            # Automatically reset character size to normal to prevent movement bugs
+            self.change_size(1.0)
+            print("Hide&Seek: Character size reset to normal to prevent movement bugs")
+
+            # Stop all timers and set interaction state
+            self.idle_timer.stop()
+            self.animation_timer.stop()
+            if hasattr(self, 'zzz_timer'):
+                self.zzz_timer.stop()
         
-        # Stop all timers and set interaction state
-        self.idle_timer.stop()
-        self.animation_timer.stop()
-        if hasattr(self, 'zzz_timer'):
-            self.zzz_timer.stop()
+            self.is_character_interaction = True
+            self.in_hide_seek_sequence = False  # Initialize flag
+            self.hide_seek_phase = 'grab'  # Track current phase: grab, move_to_taskbar, hide, waiting, found
         
-        self.is_character_interaction = True
-        self.in_hide_seek_sequence = False  # Initialize flag
-        self.hide_seek_phase = 'grab'  # Track current phase: grab, move_to_taskbar, hide, waiting, found
-        
-        # Start with Edward grabbing Clover
-        self.start_hide_seek_grab_phase()
+            # Start with Edward grabbing Clover
+            self.start_hide_seek_grab_phase()
     
     def start_hide_seek_grab_phase(self):
         """Phase 1: Edward grabs Clover."""
@@ -1687,47 +1694,57 @@ class DesktopMascot(QWidget):
         self.setVisible(True)
         
         # Re-enable AFK mode and restart behaviors
-        self.re_enable_afk_mode()
+        if config.get_setting('flags', 'had_afk_mode_enabled', True) is True:
+            self.re_enable_afk_mode()
         
         # Return to idle animation
         sitting_animations = self.animation_loader.get_animations_by_category('sitting')
         if sitting_animations:
             self.start_animation(sitting_animations[0])
+        
+        # Make the mascot can make a game again    
+        config.update_setting('flags', 'mascot_in_game', False)
 
     # cleanup_hidden_file method removed - no longer needed with visual detection
     
     def start_showdown_sequence(self):
-        """Start the Showdown minigame sequence."""
-        # Register as user interaction to prevent interruptions
-        self.logic.on_user_interaction()
+        # Check if is not already in a game
+        if config.get_setting('flags', 'mascot_in_game', True) is False:
+            
+            """Start the Showdown minigame sequence."""
+            config.update_setting('flags', 'mascot_in_game', True)
+            
+            # Register as user interaction to prevent interruptions
+            self.logic.on_user_interaction()
         
-        # Temporarily disable AFK mode during minigame
-        self.disable_afk_mode_temporarily()
+            # Temporarily disable AFK mode during minigame
+            if config.get_setting('afk_behavior', 'afk_mode_enabled', True) is True:
+                self.disable_afk_mode_temporarily()
         
-        # Size is preserved during showdown minigame
+            # Size is preserved during showdown minigame
+            self.showdown_original_size = self.size()
+            # Stop all timers and set interaction state
+            self.idle_timer.stop()
+            self.animation_timer.stop()
+            if hasattr(self, 'zzz_timer'):
+                self.zzz_timer.stop()
         
-        # Stop all timers and set interaction state
-        self.idle_timer.stop()
-        self.animation_timer.stop()
-        if hasattr(self, 'zzz_timer'):
-            self.zzz_timer.stop()
+            self.is_character_interaction = True
+            self.in_showdown_sequence = True
+            self.showdown_phase = 'summon'  # Track current phase: summon, shooting
         
-        self.is_character_interaction = True
-        self.in_showdown_sequence = True
-        self.showdown_phase = 'summon'  # Track current phase: summon, shooting
+            # Initialize bullet tracking lists
+            self.showdown_heart_bullets = []
+            self.showdown_strong_bullets = []
         
-        # Initialize bullet tracking lists
-        self.showdown_heart_bullets = []
-        self.showdown_strong_bullets = []
+            # Move to bottom center of screen for dramatic effect
+            screen = QApplication.primaryScreen().geometry()
+            center_x = screen.width() // 2 - self.width() // 2
+            bottom_y = screen.height() - self.height() - 50  # 50px margin from bottom
+            self.move(center_x, bottom_y)
         
-        # Move to bottom center of screen for dramatic effect
-        screen = QApplication.primaryScreen().geometry()
-        center_x = screen.width() // 2 - self.width() // 2
-        bottom_y = screen.height() - self.height() - 50  # 50px margin from bottom
-        self.move(center_x, bottom_y)
-        
-        # Start with gun summoning animation
-        self.start_showdown_summon_phase()
+            # Start with gun summoning animation
+            self.start_showdown_summon_phase()
     
     def start_showdown_summon_phase(self):
         """Phase 1: Clover summons the gun."""
@@ -2455,12 +2472,16 @@ class DesktopMascot(QWidget):
             self.showdown_base_strong_interval = 800
         
         # Re-enable AFK mode and restart behaviors
-        self.re_enable_afk_mode()
+        if config.get_setting('flags', 'had_afk_mode_enabled', True) is True:
+            self.re_enable_afk_mode()
         
         # Return to idle animation
         sitting_animations = self.animation_loader.get_animations_by_category('sitting')
         if sitting_animations:
             self.start_animation(sitting_animations[0])
+            
+        # Make the mascot can make a game again
+        config.update_setting('flags', 'mascot_in_game', False)
     
     def start_next_edward_animation(self):
         """Start the next animation in the Edward Walking sequence."""
@@ -3031,3 +3052,22 @@ class DesktopMascot(QWidget):
         #...
         #You really read all the code?
         #Nah you just scrolled here, so bye
+
+    def load_afk_behavior_settings(self):
+        """Read JSON file with AFK behavior settings assigned previously"""
+        try:
+            # Read afk_behavior_settings.json
+            with open('afk_behavior_settings.json', 'r') as json_file:
+                settings = json.load(json_file)
+        
+            # Update AFK BEHAVIOR Config.py
+            for key, value in settings.items():
+                config.update_setting('afk_behavior', key, value)
+        
+            print("AFK behavior settings loaded successfully.")
+        except FileNotFoundError:
+            print("AFK behavior settings file not found. Using default settings.")
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON file: {e}")
+        except Exception as e:
+            print(f"An error occurred while loading settings: {e}")

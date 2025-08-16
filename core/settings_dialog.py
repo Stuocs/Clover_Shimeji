@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 import config
+import json
 
 class AFKBehaviorSettingsDialog(QDialog):
     """Dialog for configuring which AFK behaviors are enabled."""
@@ -222,17 +223,32 @@ class AFKBehaviorSettingsDialog(QDialog):
             )
             return
         
-        # Save settings
-        config.update_setting('afk_behavior', 'enable_walking', self.walking_cb.isChecked())
-        config.update_setting('afk_behavior', 'enable_sitting', self.sitting_cb.isChecked())
-        config.update_setting('afk_behavior', 'enable_dancing', self.dancing_cb.isChecked())
-        config.update_setting('afk_behavior', 'enable_character_interactions', self.character_interactions_cb.isChecked())
-        config.update_setting('afk_behavior', 'enable_sleeping', self.sleeping_cb.isChecked())
-        config.update_setting('afk_behavior', 'enable_falling', self.falling_cb.isChecked())
-        config.update_setting('afk_behavior', 'enable_cart_rides', self.cart_rides_cb.isChecked())
-        config.update_setting('afk_behavior', 'enable_mouse_following', self.mouse_following_cb.isChecked())
-        config.update_setting('afk_behavior', 'enable_minigames', self.minigames_cb.isChecked())
-        config.update_setting('afk_behavior', 'enable_whale_mail', self.whale_mail_cb.isChecked())
+        print("LLEGA")
+         # Save settings
+        settings = {
+            'enable_walking': self.walking_cb.isChecked(),
+            'enable_sitting': self.sitting_cb.isChecked(),
+            'enable_dancing': self.dancing_cb.isChecked(),
+            'enable_character_interactions': self.character_interactions_cb.isChecked(),
+            'enable_sleeping': self.sleeping_cb.isChecked(),
+            'enable_falling': self.falling_cb.isChecked(),
+            'enable_cart_rides': self.cart_rides_cb.isChecked(),
+            'enable_mouse_following': self.mouse_following_cb.isChecked(),
+            'enable_minigames': self.minigames_cb.isChecked(),
+            'enable_whale_mail': self.whale_mail_cb.isChecked(),
+        }
+
+        # Save in JSON file
+        try:
+            # Save JSON to afk_behavior_settings.json
+            with open('afk_behavior_settings.json', 'w') as json_file:
+                json.dump(settings, json_file, indent=4)
+        except Exception as e:
+            print(f"An error occurred while saving settings: {e}")
+
+        # Update AFK BEHAVIOR Config.py
+        for key, value in settings.items():
+            config.update_setting('afk_behavior', key, value)
         
         self.accept()
     

@@ -93,6 +93,12 @@ AFK_BEHAVIOR_SETTINGS = {
     'enable_whale_mail': True      # enable whale mail delivery
 }
 
+# AFK Flag Settings
+FLAGS_SETTINGS = {
+    'had_afk_mode_enabled': False,      # Flag for minigames in AFK mode
+    'mascot_in_game': False,            # Flag to indicate if the mascot is in a game
+}
+
 def get_setting(category, key, default=None):
     """Get a configuration setting by category and key."""
     categories = {
@@ -104,7 +110,8 @@ def get_setting(category, key, default=None):
         'performance': PERFORMANCE_SETTINGS,
         'debug': DEBUG_SETTINGS,
         'character': CHARACTER_SETTINGS,
-        'afk_behavior': AFK_BEHAVIOR_SETTINGS
+        'afk_behavior': AFK_BEHAVIOR_SETTINGS,
+        'flags': FLAGS_SETTINGS
     }
     
     settings = categories.get(category, {})
@@ -121,7 +128,8 @@ def update_setting(category, key, value):
         'performance': PERFORMANCE_SETTINGS,
         'debug': DEBUG_SETTINGS,
         'character': CHARACTER_SETTINGS,
-        'afk_behavior': AFK_BEHAVIOR_SETTINGS
+        'afk_behavior': AFK_BEHAVIOR_SETTINGS,
+        'flags': FLAGS_SETTINGS
     }
     
     if category in categories:
