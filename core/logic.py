@@ -800,6 +800,9 @@ class MascotLogic(QObject):
         if getattr(self.mascot, 'is_falling', False):
             self.mascot.set_fall_mode(False, auto_stop=True)
         
+        # Disable AFK mode when starting eternal dance
+        self.mascot.disable_afk_mode_temporarily()
+        
         self.eternal_dance_mode = True
         self.stop_random_walking_system()
         self.reset_idle_sequence()  # Stop any idle sequence
@@ -811,12 +814,12 @@ class MascotLogic(QObject):
     def stop_eternal_dance(self):
         """Stop eternal dance mode and return to normal behavior."""
         self.eternal_dance_mode = False
-        # Restart random walking if no other special modes are active
-        if (self.random_walking_enabled and not self.timed_dance_mode and 
-            not getattr(self.mascot, 'is_falling', False)):
-            self.start_random_walking_system()
-        self.on_user_interaction()  # Reset interaction timer
-        self.return_to_idle()
+        
+        # Re-enable AFK mode when stopping eternal dance
+        self.mascot.re_enable_afk_mode()
+        
+        # Return to AFK mode to restart all AFK behaviors
+        self.mascot.return_to_afk_mode()
     
     def start_timed_dance(self, duration_ms=60000):
         """Start timed dance mode - mascot will dance for specified duration."""
