@@ -432,12 +432,8 @@ class DesktopMascot(QWidget):
             # Start the fall animation
             self.start_fall_animation()
         else:
-            # Restart random walking if no other special modes are active
-            if (self.logic.random_walking_enabled and 
-                not self.logic.eternal_dance_mode and not self.logic.timed_dance_mode and 
-                not self.is_sleeping and not self.is_following_mouse):
-                self.logic.start_random_walking_system()
-            self.logic.return_to_idle()
+            # Automatically trigger Return to AFK when sleep mode is deactivated
+            self.return_to_afk_mode()
     
     def return_to_afk_mode(self):
         """Return to AFK mode by disabling all special modes and enabling random walking."""
@@ -467,6 +463,11 @@ class DesktopMascot(QWidget):
         
         # Stop ZZZ animation if running
         self.stop_zzz_animation()
+        
+        # Return to idle animation
+        sitting_animations = self.animation_loader.get_animations_by_category('sitting')
+        if sitting_animations:
+            self.start_animation(sitting_animations[0])
         
         # Enable random walking system
         if not self.logic.random_walking_enabled:
@@ -3046,7 +3047,7 @@ class DesktopMascot(QWidget):
         except Exception as e:
             print(f"An error occurred while loading settings: {e}")
         # The sprite is handled by the QLabel, so we don't need to paint anything here
-        #This line only comes here because I want to have 3047 lines of code
+        #This line only comes here because I want to have 3048 lines of code
         #So I can have a better chance of getting a job at Google
         #I know, I know, it's not the best way to do it, but it's the only way I know how to do it
         #Im not getting job at google anyways so who cares

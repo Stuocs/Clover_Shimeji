@@ -410,8 +410,8 @@ class MascotLogic(QObject):
     def stop_afk_sitting(self):
         """Stop AFK sitting and resume AFK behaviors."""
         print("AFK: Stopping sitting animation and resuming AFK behaviors")
-        # Return to idle state and resume AFK behaviors
-        self.return_to_idle()
+        # Return to AFK mode to restart all AFK behaviors
+        self.mascot.return_to_afk_mode()
         import random
         self.random_walking_timer.start(random.randint(2000, 5000))
     
@@ -801,7 +801,8 @@ class MascotLogic(QObject):
             self.mascot.set_fall_mode(False, auto_stop=True)
         
         # Disable AFK mode when starting eternal dance
-        self.mascot.disable_afk_mode_temporarily()
+        if config.get_setting('afk_behavior', 'afk_mode_enabled', True) is True:
+            self.mascot.disable_afk_mode_temporarily()
         
         self.eternal_dance_mode = True
         self.stop_random_walking_system()
@@ -816,8 +817,9 @@ class MascotLogic(QObject):
         self.eternal_dance_mode = False
         
         # Re-enable AFK mode when stopping eternal dance
-        self.mascot.re_enable_afk_mode()
-        
+        if config.get_setting('flags', 'had_afk_mode_enabled', True) is True:
+            self.mascot.re_enable_afk_mode()
+            
         # Return to AFK mode to restart all AFK behaviors
         self.mascot.return_to_afk_mode()
     
