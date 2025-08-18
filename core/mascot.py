@@ -239,7 +239,7 @@ class DesktopMascot(QWidget):
             current_scale = config.get_setting('size', 'current_scale', 1.0)
             if current_scale != 1.0:
                 scaled_size = pixmap.size() * current_scale
-                pixmap = pixmap.scaled(scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                pixmap = pixmap.scaled(scaled_size, Qt.KeepAspectRatio, Qt.FastTransformation)
             
             # If sleeping and using precomposed ZZZ frames, use them instead
             if (self.is_sleeping and hasattr(self, 'zzz_composite_frames') and 
@@ -266,7 +266,7 @@ class DesktopMascot(QWidget):
         # Scale ZZZ sprite if needed
         if scale != 1.0:
             zzz_scaled_size = zzz_pixmap.size() * scale
-            zzz_pixmap = zzz_pixmap.scaled(zzz_scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            zzz_pixmap = zzz_pixmap.scaled(zzz_scaled_size, Qt.KeepAspectRatio, Qt.FastTransformation)
         
         # Calculate progressive height offset for each ZZZ frame (0, 1, 2)
         # Frame 0: closest to head, Frame 2: highest
@@ -625,7 +625,7 @@ class DesktopMascot(QWidget):
         # Apply scaling to base sprite
         if current_scale != 1.0:
             scaled_size = base_pixmap.size() * current_scale
-            base_pixmap = base_pixmap.scaled(scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            base_pixmap = base_pixmap.scaled(scaled_size, Qt.KeepAspectRatio, Qt.FastTransformation)
         
         # Clear previous composite frames
         self.zzz_composite_frames = []
@@ -642,7 +642,7 @@ class DesktopMascot(QWidget):
         # Scale ZZZ sprite if needed
         if scale != 1.0:
             zzz_scaled_size = zzz_pixmap.size() * scale
-            zzz_pixmap = zzz_pixmap.scaled(zzz_scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            zzz_pixmap = zzz_pixmap.scaled(zzz_scaled_size, Qt.KeepAspectRatio, Qt.FastTransformation)
         
         # Calculate progressive height offset for each ZZZ frame (0, 1, 2)
         height_offset = frame_index * int(10 * scale)  # Progressive height increase
@@ -1919,7 +1919,7 @@ class DesktopMascot(QWidget):
             # Scale the bullet sprite to match Clover's size
             if current_scale != 1.0:
                 scaled_size = first_frame.size() * current_scale
-                first_frame = first_frame.scaled(scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                first_frame = first_frame.scaled(scaled_size, Qt.KeepAspectRatio, Qt.FastTransformation)
             heart_bullet.setPixmap(first_frame)
             heart_bullet.resize(first_frame.size())
         
@@ -1999,7 +1999,7 @@ class DesktopMascot(QWidget):
                     frame = frames[heart_bullet.animation_frame]
                     if bullet_scale != 1.0:
                         scaled_size = frame.size() * bullet_scale
-                        frame = frame.scaled(scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                        frame = frame.scaled(scaled_size, Qt.KeepAspectRatio, Qt.FastTransformation)
                     heart_bullet.setPixmap(frame)
                 
                 # Move bullet towards target
@@ -2098,7 +2098,7 @@ class DesktopMascot(QWidget):
             # Scale the bullet sprite to match Clover's size
             if current_scale != 1.0:
                 scaled_size = first_frame.size() * current_scale
-                first_frame = first_frame.scaled(scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                first_frame = first_frame.scaled(scaled_size, Qt.KeepAspectRatio, Qt.FastTransformation)
             strong_bullet.setPixmap(first_frame)
             strong_bullet.resize(first_frame.size())
         
@@ -2183,7 +2183,7 @@ class DesktopMascot(QWidget):
                     frame = frames[strong_bullet.animation_frame]
                     if bullet_scale != 1.0:
                         scaled_size = frame.size() * bullet_scale
-                        frame = frame.scaled(scaled_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                        frame = frame.scaled(scaled_size, Qt.KeepAspectRatio, Qt.FastTransformation)
                     strong_bullet.setPixmap(frame)
                     
             except RuntimeError:
@@ -2815,7 +2815,7 @@ class DesktopMascot(QWidget):
                                     if pixmap.loadFromData(img_response.content):
                                         # Scale image to reasonable size
                                         if pixmap.width() > 600 or pixmap.height() > 600:
-                                            pixmap = pixmap.scaled(600, 600, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                                            pixmap = pixmap.scaled(600, 600, Qt.KeepAspectRatio, Qt.FastTransformation)
                                         self.meme_fetched.emit(pixmap)
                                         return
                         
